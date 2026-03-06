@@ -230,6 +230,82 @@ document.addEventListener('DOMContentLoaded', () => {
     draw();
 })();
 
+// ================================
+// Hero Title Letter Proximity Effect
+// ================================
+
+(function () {
+    const title = document.querySelector('.hero-title');
+    if (!title) return;
+
+    const BASE_START = [255, 255, 255]; // #ffffff
+    const BASE_END   = [160, 160, 160]; // #a0a0a0
+    const ACCENT     = [0, 255, 148];   // #00ff94
+    const RADIUS     = 150;
+
+    function lerp(a, b, t) { return a + (b - a) * t; }
+    function lerpColor(c1, c2, t) {
+        return [
+            Math.round(lerp(c1[0], c2[0], t)),
+            Math.round(lerp(c1[1], c2[1], t)),
+            Math.round(lerp(c1[2], c2[2], t))
+        ];
+    }
+    function toRgb([r, g, b]) { return `rgb(${r},${g},${b})`; }
+
+    // Split title text into per-character spans
+    const text = title.textContent;
+    const nonSpaceCount = text.split('').filter(c => c !== ' ').length;
+    let charIndex = 0;
+    title.innerHTML = '';
+
+    for (const ch of text) {
+        const span = document.createElement('span');
+        span.className = 'hero-char';
+        if (ch === ' ') {
+            span.innerHTML = '&nbsp;';
+        } else {
+            span.textContent = ch;
+            const t = charIndex / Math.max(1, nonSpaceCount - 1);
+            const base = lerpColor(BASE_START, BASE_END, t);
+            span.style.color = toRgb(base);
+            span.dataset.base = base.join(',');
+            charIndex++;
+        }
+        title.appendChild(span);
+    }
+
+    const chars = Array.from(title.querySelectorAll('.hero-char[data-base]'));
+    let leaving = false;
+
+    function update(mouseX, mouseY) {
+        if (leaving) {
+            title.classList.remove('hero-leaving');
+            leaving = false;
+        }
+        for (const span of chars) {
+            const rect = span.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            const dist = Math.hypot(mouseX - cx, mouseY - cy);
+            const intensity = Math.max(0, 1 - dist / RADIUS) ** 2;
+            const base = span.dataset.base.split(',').map(Number);
+            span.style.color = toRgb(lerpColor(base, ACCENT, intensity));
+        }
+    }
+
+    function reset() {
+        leaving = true;
+        title.classList.add('hero-leaving');
+        for (const span of chars) {
+            span.style.color = toRgb(span.dataset.base.split(',').map(Number));
+        }
+    }
+
+    document.addEventListener('mousemove', (e) => update(e.clientX, e.clientY));
+    document.getElementById('hero').addEventListener('mouseleave', reset);
+})();
+
 // Console signature
 console.log('%c👋 Hi there!', 'font-size: 24px; font-weight: bold; color: #00ff94;');
 console.log('%cFrey Brightwater - Developer Relations Engineer', 'font-size: 14px; color: #a0a0a0;');

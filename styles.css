@@ -43,12 +43,6 @@
     --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-@property --hero-title-end {
-    syntax: '<color>';
-    initial-value: #a0a0a0;
-    inherits: false;
-}
-
 /* ================================
    Reset & Base
    ================================ */
@@ -196,16 +190,11 @@ body {
     letter-spacing: -0.03em;
     margin-bottom: var(--space-lg);
     padding-bottom: 0.1em;
-    background: linear-gradient(135deg, var(--color-text) 0%, var(--hero-title-end) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
     display: inline-block;
-    transition: --hero-title-end 0.4s ease;
 }
 
-.hero-title:hover {
-    --hero-title-end: #00ff94;
+.hero-title.hero-leaving .hero-char {
+    transition: color 0.6s ease;
 }
 
 .hero-description {
