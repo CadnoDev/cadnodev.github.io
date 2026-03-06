@@ -152,7 +152,7 @@ body {
     min-height: 100vh;
     display: flex;
     align-items: center;
-    padding: var(--nav-height) var(--space-lg) var(--space-3xl);
+    padding: calc(var(--nav-height) + var(--space-2xl)) var(--space-lg) var(--space-3xl);
 }
 
 .hero-container {
