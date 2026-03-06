@@ -43,6 +43,12 @@
     --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+@property --hero-title-end {
+    syntax: '<color>';
+    initial-value: #a0a0a0;
+    inherits: false;
+}
+
 /* ================================
    Reset & Base
    ================================ */
@@ -153,12 +159,25 @@ body {
     display: flex;
     align-items: center;
     padding: calc(var(--nav-height) + var(--space-2xl)) var(--space-lg) var(--space-3xl);
+    position: relative;
+    overflow: hidden;
+}
+
+#hero-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
 }
 
 .hero-container {
     max-width: var(--max-width);
     margin: 0 auto;
     width: 100%;
+    position: relative;
+    z-index: 1;
 }
 
 .hero-label {
@@ -177,11 +196,16 @@ body {
     letter-spacing: -0.03em;
     margin-bottom: var(--space-lg);
     padding-bottom: 0.1em;
-    background: linear-gradient(135deg, var(--color-text) 0%, var(--color-text-secondary) 100%);
+    background: linear-gradient(135deg, var(--color-text) 0%, var(--hero-title-end) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     display: inline-block;
+    transition: --hero-title-end 0.4s ease;
+}
+
+.hero-title:hover {
+    --hero-title-end: #00ff94;
 }
 
 .hero-description {

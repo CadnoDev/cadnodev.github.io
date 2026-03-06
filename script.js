@@ -88,6 +88,148 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+// ================================
+// Particle Network Background
+// ================================
+
+(function () {
+    const canvas = document.getElementById('hero-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    const COLORS = ['#00d9ff', '#ff6b9d', '#00ff94'];
+    const PARTICLE_COUNT = 80;
+    const CONNECT_DIST = 140;
+    const MOUSE_REPEL_DIST = 100;
+    const MOUSE_REPEL_FORCE = 0.3;
+
+    let mouse = { x: -9999, y: -9999 };
+    let particles = [];
+    let animId;
+
+    function resize() {
+        const hero = document.getElementById('hero');
+        canvas.width = hero.offsetWidth;
+        canvas.height = hero.offsetHeight;
+    }
+
+    function hexToRgb(hex) {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return `${r},${g},${b}`;
+    }
+
+    function createParticle() {
+        const speed = 0.08 + Math.random() * 0.12;
+        const angle = Math.random() * Math.PI * 2;
+        return {
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            radius: 1.5 + Math.random() * 1,
+            color: COLORS[Math.floor(Math.random() * COLORS.length)],
+        };
+    }
+
+    function init() {
+        resize();
+        particles = Array.from({ length: PARTICLE_COUNT }, createParticle);
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Update and draw particles
+        for (let i = 0; i < particles.length; i++) {
+            const p = particles[i];
+
+            // Mouse repulsion
+            const dx = p.x - mouse.x;
+            const dy = p.y - mouse.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < MOUSE_REPEL_DIST && dist > 0) {
+                const force = (MOUSE_REPEL_DIST - dist) / MOUSE_REPEL_DIST * MOUSE_REPEL_FORCE;
+                p.vx += (dx / dist) * force;
+                p.vy += (dy / dist) * force;
+            }
+
+            // Speed cap
+            const spd = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+            if (spd > 0.8) { p.vx *= 0.92; p.vy *= 0.92; }
+
+            p.x += p.vx;
+            p.y += p.vy;
+
+            // Bounce off edges
+            if (p.x < 0 || p.x > canvas.width)  p.vx *= -1;
+            if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+            p.x = Math.max(0, Math.min(canvas.width, p.x));
+            p.y = Math.max(0, Math.min(canvas.height, p.y));
+
+            // Draw dot
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            ctx.fillStyle = p.color;
+            ctx.globalAlpha = 0.5;
+            ctx.fill();
+        }
+
+        // Draw connecting lines
+        ctx.globalAlpha = 1;
+        for (let i = 0; i < particles.length; i++) {
+            for (let j = i + 1; j < particles.length; j++) {
+                const a = particles[i];
+                const b = particles[j];
+                const dx = a.x - b.x;
+                const dy = a.y - b.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < CONNECT_DIST) {
+                    const alpha = (1 - dist / CONNECT_DIST) * 0.15;
+                    ctx.beginPath();
+                    ctx.moveTo(a.x, a.y);
+                    ctx.lineTo(b.x, b.y);
+                    ctx.strokeStyle = `rgba(${hexToRgb(a.color)},${alpha})`;
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+            }
+        }
+
+        animId = requestAnimationFrame(draw);
+    }
+
+    // Track mouse relative to canvas
+    document.getElementById('hero').addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        mouse.x = e.clientX - rect.left;
+        mouse.y = e.clientY - rect.top;
+    });
+
+    document.getElementById('hero').addEventListener('mouseleave', () => {
+        mouse.x = -9999;
+        mouse.y = -9999;
+    });
+
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            cancelAnimationFrame(animId);
+            resize();
+            particles.forEach(p => {
+                p.x = Math.min(p.x, canvas.width);
+                p.y = Math.min(p.y, canvas.height);
+            });
+            draw();
+        }, 150);
+    });
+
+    init();
+    draw();
+})();
+
 // Console signature
 console.log('%c👋 Hi there!', 'font-size: 24px; font-weight: bold; color: #00ff94;');
 console.log('%cFrey Brightwater - Developer Relations Engineer', 'font-size: 14px; color: #a0a0a0;');
